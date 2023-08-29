@@ -1,26 +1,18 @@
 package main
 
 import (
-	"fmt"
-	"login_avenger/api"
-	"login_avenger/auth"
-	"login_avenger/config"
-	"login_avenger/middleware"
+	"login_avenger/database"
+	"login_avenger/handlers"
 	"net/http"
-
-	"github.com/julienschmidt/httprouter"
 )
 
 func main() {
-	router := httprouter.New()
+	db := database.InitDB()
+	defer db.Close()
 
-	cfg := config.NewConfig()
-	auth.Initialize(cfg)
+	router := handlers.NewRouter(db)
 
-	// Menggunakan middleware LoggingMiddleware untuk mencatat log
-	router.POST("/register", middleware.LoggingMiddleware(api.RegisterHandler))
-	router.POST("/login", middleware.LoggingMiddleware(api.LoginHandler))
+	http.Handle("/", router)
 
-	fmt.Println("Server is running on :8080")
-	http.ListenAndServe(":8080", router)
+	http.ListenAndServe(":8080", nil)
 }
